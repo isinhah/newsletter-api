@@ -27,16 +27,16 @@ public class Subscriber implements Serializable {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @CreationTimestamp
-    @Column(nullable = false, name = "subscription_date")
-    private Instant subscriptionDate;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SubscriberStatus status;
 
     @Column(nullable = false, name = "is_verified")
-    private boolean isVerified = false;
+    private boolean verified = false;
+
+    @CreationTimestamp
+    @Column(nullable = false, name = "subscription_date")
+    private Instant subscriptionDate;
 
     @Column(unique = true, name = "verification_token", length = 36)
     private String verificationToken;
