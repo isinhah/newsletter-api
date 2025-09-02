@@ -16,3 +16,8 @@ spring:
   h2:
     console:
       enabled: true
+  rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES}
+    queue:
+      verification:
+        name: subscriber.verification.queue

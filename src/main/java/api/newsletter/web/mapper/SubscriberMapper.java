@@ -20,9 +20,5 @@ public interface SubscriberMapper {
     @Mapping(source = "email", target = "email")
     Subscriber toEntity(SubscriberRegisterDto subscriberRegisterDto);
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "verified", ignore = true)
-    @Mapping(target = "status", ignore = true)
-    @Mapping(target = "subscriptionDate", ignore = true)
     SubscriberResponseDto toDto(Subscriber subscriber);
 }

@@ -1,5 +1,6 @@
 package api.newsletter.service;
 
+import api.newsletter.messaging.EmailProducer;
 import api.newsletter.model.Subscriber;
 import api.newsletter.model.SubscriberStatus;
 import api.newsletter.repository.SubscriberRepository;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class SubscriberService {
 
     private final SubscriberRepository subscriberRepository;
+    private final EmailProducer emailProducer;
 
     public SubscriberResponseDto registerSubscriber(SubscriberRegisterDto registerDto) {
         Subscriber subscriber = subscriberRepository.findByEmail(registerDto.email());
@@ -33,10 +35,7 @@ public class SubscriberService {
 
         Subscriber savedSubscriber = subscriberRepository.save(subscriber);
 
-//        sendEmailService.sendVerificationEmail(
-//                savedSubscriber.getEmail(),
-//                savedSubscriber.getVerificationToken()
-//        );
+        emailProducer.publishVerificationEmail(savedSubscriber);
 
         return SubscriberMapper.INSTANCE.toDto(savedSubscriber);
     }
@@ -44,8 +43,8 @@ public class SubscriberService {
     public void verifyToken(String token) {
          Optional<Subscriber> subscriberOptional = subscriberRepository.findByVerificationToken(token);
 
-         if (subscriberOptional.isPresent()) {
-             throw new IllegalArgumentException("Token already exists or it's invalid.");
+         if (subscriberOptional.isEmpty()) {
+             throw new IllegalArgumentException("Invalid token or it has already been used.");
          }
 
          Subscriber subscriber = subscriberOptional.get();
@@ -61,8 +60,8 @@ public class SubscriberService {
     public void unsubscribe(String token) {
         Optional<Subscriber> subscriberOptional = subscriberRepository.findByVerificationToken(token);
 
-        if (subscriberOptional.isPresent()) {
-            throw new IllegalArgumentException("Token is invalid.");
+        if (subscriberOptional.isEmpty()) {
+            throw new IllegalArgumentException("Invalid token.");
         }
 
         Subscriber subscriber = subscriberOptional.get();
