@@ -29,7 +29,7 @@ public class Subscriber implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private SubscriberStatus status;
+    private SubscriberStatus status = SubscriberStatus.UNSUBSCRIBED;
 
     @Column(nullable = false, name = "is_verified")
     private boolean verified = false;
