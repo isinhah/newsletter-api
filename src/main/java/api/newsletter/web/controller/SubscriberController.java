@@ -1,5 +1,6 @@
 package api.newsletter.web.controller;
 
+import api.newsletter.model.SubscriberStatus;
 import api.newsletter.service.SubscriberService;
 import api.newsletter.web.dto.SubscriberRegisterDto;
 import api.newsletter.web.dto.SubscriberResponseDto;
@@ -18,6 +19,12 @@ public class SubscriberController {
 
     private final SubscriberService subscriberService;
 
+    @GetMapping
+    public ResponseEntity<Page<SubscriberResponseDto>> getSubscribersByStatus(@RequestParam String status, Pageable pageable) {
+        Page<SubscriberResponseDto> subscribers = subscriberService.getSubscribersByStatus(status, pageable);
+        return ResponseEntity.ok(subscribers);
+    }
+
     @PostMapping
     public ResponseEntity<SubscriberResponseDto> registerSubscriber(@Valid @RequestBody SubscriberRegisterDto subscriberRegisterDto) {
         SubscriberResponseDto response = subscriberService.registerSubscriber(subscriberRegisterDto);
@@ -32,11 +39,5 @@ public class SubscriberController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
-    }
-
-    @GetMapping
-    public ResponseEntity<Page<SubscriberResponseDto>> getSubscribers(Pageable pageable) {
-        Page<SubscriberResponseDto> subscribers = subscriberService.getActiveSubscribers(pageable);
-        return ResponseEntity.ok(subscribers);
     }
 }

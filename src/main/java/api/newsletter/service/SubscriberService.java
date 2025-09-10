@@ -22,6 +22,23 @@ public class SubscriberService {
     private final SubscriberRepository subscriberRepository;
     private final EmailProducer emailProducer;
 
+    public Page<SubscriberResponseDto> getSubscribersByStatus(String status, Pageable pageable) {
+        if (status == null || status.isBlank()) {
+            Page<Subscriber> allSubscribers = subscriberRepository.findAll(pageable);
+            return allSubscribers.map(SubscriberMapper.INSTANCE::toDto);
+        }
+
+        SubscriberStatus subscriberStatus;
+        try {
+            subscriberStatus = SubscriberStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Invalid status: " + status);
+        }
+
+        Page<Subscriber> subscribers = subscriberRepository.findByStatus(subscriberStatus, pageable);
+        return subscribers.map(SubscriberMapper.INSTANCE::toDto);
+    }
+
     public SubscriberResponseDto registerSubscriber(SubscriberRegisterDto registerDto) {
         Subscriber subscriber = subscriberRepository.findByEmail(registerDto.email());
 
@@ -51,7 +68,6 @@ public class SubscriberService {
 
          subscriber.setVerified(true);
          subscriber.setStatus(SubscriberStatus.ACTIVE);
-
          subscriber.setVerificationToken(null);
 
          subscriberRepository.save(subscriber);
@@ -68,14 +84,8 @@ public class SubscriberService {
 
         subscriber.setVerified(false);
         subscriber.setStatus(SubscriberStatus.UNSUBSCRIBED);
-
         subscriber.setVerificationToken(null);
 
         subscriberRepository.save(subscriber);
-    }
-
-    public Page<SubscriberResponseDto> getActiveSubscribers(Pageable pageable) {
-        Page<Subscriber> activeSubscribersPage = subscriberRepository.findByStatus(SubscriberStatus.ACTIVE, pageable);
-        return activeSubscribersPage.map(SubscriberMapper.INSTANCE::toDto);
     }
 }
