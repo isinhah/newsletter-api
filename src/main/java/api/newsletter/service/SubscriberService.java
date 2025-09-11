@@ -6,7 +6,9 @@ import api.newsletter.model.SubscriberStatus;
 import api.newsletter.repository.SubscriberRepository;
 import api.newsletter.web.dto.SubscriberRegisterDto;
 import api.newsletter.web.dto.SubscriberResponseDto;
-import api.newsletter.web.mapper.SubscriberMapper;
+import api.newsletter.mapper.SubscriberMapper;
+import api.newsletter.web.exception.InvalidSubscriberStatusException;
+import api.newsletter.web.exception.InvalidTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +33,7 @@ public class SubscriberService {
         try {
             subscriberStatus = SubscriberStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid status: " + status);
+            throw new InvalidSubscriberStatusException("Invalid status: " + status);
         }
 
         Page<Subscriber> subscribers = subscriberRepository.findByStatus(subscriberStatus, pageable);
@@ -55,7 +57,7 @@ public class SubscriberService {
 
     public void verifyToken(String token) {
         Subscriber subscriber = subscriberRepository.findByVerificationToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid token or it has already been used."));
+                .orElseThrow(() -> new InvalidTokenException("Invalid token or it has already been used."));
 
         subscriber.setVerified(true);
         subscriber.setStatus(SubscriberStatus.ACTIVE);
@@ -66,7 +68,7 @@ public class SubscriberService {
 
     public void unsubscribe(String token) {
         Subscriber subscriber = subscriberRepository.findByUnsubscribeToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid token."));
+                .orElseThrow(() -> new InvalidTokenException("Invalid token."));
 
         subscriber.setVerified(false);
         subscriber.setStatus(SubscriberStatus.UNSUBSCRIBED);

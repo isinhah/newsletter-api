@@ -1,4 +1,4 @@
-package api.newsletter.web.mapper;
+package api.newsletter.mapper;
 
 import api.newsletter.model.Subscriber;
 import api.newsletter.web.dto.SubscriberRegisterDto;
