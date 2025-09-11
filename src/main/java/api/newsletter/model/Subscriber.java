@@ -41,6 +41,9 @@ public class Subscriber implements Serializable {
     @Column(unique = true, name = "verification_token", length = 36)
     private String verificationToken;
 
+    @Column(unique = true, length = 36)
+    private String unsubscribeToken;
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

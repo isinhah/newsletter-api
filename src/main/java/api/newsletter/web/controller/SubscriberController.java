@@ -1,6 +1,5 @@
 package api.newsletter.web.controller;
 
-import api.newsletter.model.SubscriberStatus;
 import api.newsletter.service.SubscriberService;
 import api.newsletter.web.dto.SubscriberRegisterDto;
 import api.newsletter.web.dto.SubscriberResponseDto;
@@ -31,13 +30,15 @@ public class SubscriberController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/unsubscribe/{token}")
-    public ResponseEntity<String> unsubscribeSubscriber(@PathVariable String token) {
-        try {
-            subscriberService.unsubscribe(token);
-            return ResponseEntity.ok("Subscriber unsubscribed");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyToken(@RequestParam String token) {
+        subscriberService.verifyToken(token);
+        return ResponseEntity.ok("Subscriber verified successfully.");
+    }
+
+    @PostMapping("/unsubscribe")
+    public ResponseEntity<String> unsubscribeSubscriber(@RequestParam String token) {
+        subscriberService.unsubscribe(token);
+        return ResponseEntity.ok("Subscriber unsubscribed successfully.");
     }
 }

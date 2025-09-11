@@ -14,5 +14,6 @@ public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
 
     Subscriber findByEmail(String email);
     Optional<Subscriber> findByVerificationToken(String token);
+    Optional<Subscriber> findByUnsubscribeToken(String token);
     Page<Subscriber> findByStatus(SubscriberStatus status, Pageable pageable);
 }

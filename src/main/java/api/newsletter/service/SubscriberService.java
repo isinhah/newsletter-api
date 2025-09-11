@@ -12,7 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -44,48 +43,47 @@ public class SubscriberService {
 
         if (subscriber == null) {
             subscriber = SubscriberMapper.INSTANCE.toEntity(registerDto);
+            return initializeSubscriber(subscriber);
+        } else {
+            if (subscriber.getStatus() == SubscriberStatus.UNSUBSCRIBED || subscriber.getStatus() == SubscriberStatus.PENDING) {
+                return initializeSubscriber(subscriber);
+            } else {
+                return SubscriberMapper.INSTANCE.toDto(subscriber);
+            }
         }
-
-        subscriber.setStatus(SubscriberStatus.PENDING);
-        subscriber.setVerified(false);
-        subscriber.setVerificationToken(UUID.randomUUID().toString());
-
-        Subscriber savedSubscriber = subscriberRepository.save(subscriber);
-
-        emailProducer.publishVerificationEmail(savedSubscriber);
-
-        return SubscriberMapper.INSTANCE.toDto(savedSubscriber);
     }
 
     public void verifyToken(String token) {
-         Optional<Subscriber> subscriberOptional = subscriberRepository.findByVerificationToken(token);
+        Subscriber subscriber = subscriberRepository.findByVerificationToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid token or it has already been used."));
 
-         if (subscriberOptional.isEmpty()) {
-             throw new IllegalArgumentException("Invalid token or it has already been used.");
-         }
+        subscriber.setVerified(true);
+        subscriber.setStatus(SubscriberStatus.ACTIVE);
+        subscriber.setVerificationToken(null);
 
-         Subscriber subscriber = subscriberOptional.get();
-
-         subscriber.setVerified(true);
-         subscriber.setStatus(SubscriberStatus.ACTIVE);
-         subscriber.setVerificationToken(null);
-
-         subscriberRepository.save(subscriber);
+        subscriberRepository.save(subscriber);
     }
 
     public void unsubscribe(String token) {
-        Optional<Subscriber> subscriberOptional = subscriberRepository.findByVerificationToken(token);
-
-        if (subscriberOptional.isEmpty()) {
-            throw new IllegalArgumentException("Invalid token.");
-        }
-
-        Subscriber subscriber = subscriberOptional.get();
+        Subscriber subscriber = subscriberRepository.findByUnsubscribeToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid token."));
 
         subscriber.setVerified(false);
         subscriber.setStatus(SubscriberStatus.UNSUBSCRIBED);
         subscriber.setVerificationToken(null);
+        subscriber.setUnsubscribeToken(null);
 
         subscriberRepository.save(subscriber);
+    }
+
+    private SubscriberResponseDto initializeSubscriber(Subscriber subscriber) {
+        subscriber.setStatus(SubscriberStatus.PENDING);
+        subscriber.setVerified(false);
+        subscriber.setVerificationToken(UUID.randomUUID().toString());
+        subscriber.setUnsubscribeToken(UUID.randomUUID().toString());
+
+        Subscriber savedSubscriber = subscriberRepository.save(subscriber);
+        emailProducer.publishVerificationEmail(savedSubscriber);
+        return SubscriberMapper.INSTANCE.toDto(savedSubscriber);
     }
 }
